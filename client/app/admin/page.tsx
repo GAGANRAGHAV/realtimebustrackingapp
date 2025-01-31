@@ -150,6 +150,14 @@ console.log(destinations);
       return;
     }
 
+    const payload = {
+      driverdetails: selectedDriver,
+      busId,
+      source,
+      destinations,
+    };
+    console.log("trip payload:", payload);
+
     try {
       const token = localStorage.getItem("token");
       await axios.post(

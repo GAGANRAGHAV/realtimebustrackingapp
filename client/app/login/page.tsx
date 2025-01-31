@@ -10,47 +10,55 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState(""); // For registration
   const [role, setRole] = useState("driver"); // Default role for registration
+  const [boardingLocation, setBoardingLocation] = useState(""); // For parent role
+
   const router = useRouter();
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`http://localhost:5000/api/auth/login`, {
-        email,
-        password,
-      });
-        console.log("Login successful:", response.data);
+      const response = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+  
+      console.log("Login successful:", response.data);
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("userId", response.data.userId);
+  
       if (response.data.role === "admin") {
-        console.log(response.data.role);
         router.push("/admin");
-      } else {
-        console.log(response.data.role);
+      } else if (response.data.role === "driver") {
         router.push("/driver");
+      } else if (response.data.role === "parent") {
+        localStorage.setItem("boardingLocation", response.data.boardingLocation);
+        router.push("/parent");
       }
     } catch (error) {
       console.error("Login failed", error);
     }
   };
+  
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post(`http://localhost:5000/api/auth/register`, {
-        name,
-        email,
-        password,
-        role,
-      });
+      const requestData = { name, email, password, role };
+      
+      if (role === "parent") {
+        requestData.boardingLocation = boardingLocation;
+      }
+  
+      const response = await axios.post("http://localhost:5000/api/auth/register", requestData);
       console.log("Registration successful:", response.data);
       setIsLogin(true); // Switch to login after successful registration
     } catch (error) {
       console.error("Registration failed", error);
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="p-8 bg-white shadow-lg rounded-lg">
-        <h1 className="mb-6 text-2xl font-bold">{isLogin ? "Login" : "Register"}</h1>
+        <h1 className="mb-6 text-2xl font-bold">
+          {isLogin ? "Login" : "Register"}
+        </h1>
 
         {!isLogin && (
           <>
@@ -68,7 +76,21 @@ export default function AuthPage() {
             >
               <option value="driver">Driver</option>
               <option value="admin">Admin</option>
+              <option value="parent">Parent</option>
+
+              
             </select>
+
+
+            {role === "parent" && (
+                <input
+                  type="text"
+                  placeholder="Enter child's boarding location"
+                  className="w-full mb-4 p-2 border rounded"
+                  value={boardingLocation}
+                  onChange={(e) => setBoardingLocation(e.target.value)}
+                />
+              )}
           </>
         )}
 

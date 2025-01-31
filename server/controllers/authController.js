@@ -5,14 +5,25 @@ const User = require("../models/User");
 const JWT_SECRET = "your_jwt_secret";
 
 exports.register = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, boardingLocation } = req.body;
+
   try {
-    const user = await User.create({ name, email, password, role });
+    const userData = { name, email, password, role };
+    
+    if (role === "parent") {
+      if (!boardingLocation) {
+        return res.status(400).json({ error: "Boarding location is required for parents" });
+      }
+      userData.boardingLocation = boardingLocation;
+    }
+
+    const user = await User.create(userData);
     res.status(201).json({ success: true, user });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
+
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -28,7 +39,7 @@ exports.login = async (req, res) => {
       expiresIn: "1d",
     });
 
-    res.status(200).json({ success: true, token,role:user.role });
+    res.status(200).json({ success: true, token,role:user.role,userId:user._id ,boardingLocation:user.boardingLocation});
   } catch (err) {
     res.status(401).json({ error: err.message });
   }

@@ -5,8 +5,10 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["driver", "admin"], required: true },
+  role: { type: String, required: true, enum: ["driver", "admin", "parent"] },
+  boardingLocation: { type: String, required: function () { return this.role === "parent"; } }, // Only required for parents
 });
+
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
